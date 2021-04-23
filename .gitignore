@@ -19,3 +19,7 @@ Tests.Assets.WebApi/bin/
 Tests.Assets.Referenced/bin/
 DocumentationGenerator/bin/
 DocumentationGenerator/obj/
+/NTypewriter.CodeModel.Functions.Tests.WebApi2/bin/Debug
+/packages
+/NTypewriter.CodeModel.Functions.Tests.WebApi2/obj/Debug
+/Tests.Assets.MvcWebApi2/bin
