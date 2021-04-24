@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NTypewriter.CodeModel.Roslyn;
+using Shouldly;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
-namespace NTypewriter.CodeModel.Functions.Tests.Method
+namespace NTypewriter.CodeModel.Functions.Tests.Action
 {
     [TestClass]
-    public class ActionFunctionsTests : BaseFixture
+    public partial class ActionFunctionsTests : BaseFixture
     {
         ICodeModel data;
         Configuration settings;
@@ -22,79 +21,47 @@ namespace NTypewriter.CodeModel.Functions.Tests.Method
             settings = new Configuration();
         }
 
+        [TestMethod]
+        public async Task BodyParameter()
+        {          
+            await RunTestForFunction();
+        }
 
         [TestMethod]
         public async Task HttpMethod()
         {
-            var template = @"{{- capture result }}
-                                {{- for class in data.Classes | Types.ThatInheritFrom ""ControllerBase"" }}
-                                   {{- for method in class.Methods }}                            
-                                      [{{- method.Name }} : {{- method | Action.HttpMethod }}]
-                                   {{- end }}
-                                {{- end }}
-                             {{- end }}
-                             {{- Save result ""Some name"" }}
-                            ";
-            var result = await NTypeWriter.Render(template, data, settings);
-            var actual = RemoveWhitespace(result.Items.First().Content);
-
-            var expected = RemoveWhitespace(
-                           @"[GetData:get]
-                             [SomeAsync:put]
-                             [SomeAsync2:delete]
-                             [ActionWithEnumParam:post]");
-            Assert.AreEqual(expected, actual);
+            await RunTestForFunction();
         }
-
 
         [TestMethod]
-        public async Task BodyParameter()
+        public async Task Parameters()
         {
-            var template = @"{{- capture result }}
-                                {{- for class in data.Classes | Types.ThatInheritFrom ""ControllerBase"" }}
-                                   {{- for method in class.Methods }}                            
-                                      [{{- method.Name }} : {{- method | Action.BodyParameter }}]
-                                   {{- end }}
-                                {{- end }}
-                             {{- end }}
-                             {{- Save result ""Some name"" }}
-                            ";
-            var result = await NTypeWriter.Render(template, data, settings);
-            var actual = RemoveWhitespace(result.Items.First().Content);
-
-            var expected = RemoveWhitespace(
-                              @"[GetData:intbody]
-                                [SomeAsync:InputDTObody]
-                                [SomeAsync2:InputDTObody]
-                                [ActionWithEnumParam:]");
-            Assert.AreEqual(expected, actual);
+            await RunTestForFunction();
         }
 
+        [TestMethod]
+        public async Task ReturnType()
+        {
+            await RunTestForFunction();
+        }
 
         [TestMethod]
         public async Task Url()
         {
-            var template = @"{{- capture result
-                                 for class in data.Classes | Types.ThatInheritFrom ""ControllerBase"" 
-                                     for method in class.Methods }}                       
-                                      [{{- method.Name }} : {{- method | Action.Url }}]
-                                   {{- end
-                                 end 
-                                 end 
-                                 Save result ""Some name"" }}
-                            ";
-            var result = await NTypeWriter.Render(template, data, settings);
-            var actual = RemoveWhitespace(result.Items.First().Content);
-
-            var expected = RemoveWhitespace(
-                           @"[GetData:WeatherForecast/hkk]
-                             [SomeAsync:sd?page=${pagg.page}&limit=${pagg.limit}]
-                             [SomeAsync2:WeatherForecast/akacja/${par1}/${par2}/${par3}?par4=${par4}&par5=${par5}]
-                             [ActionWithEnumParam:WeatherForecast?numbers=${numbers}&optional=${optional}&date=${date}]");
-                          
-            Assert.AreEqual(expected, actual);
+            await RunTestForFunction();
         }
 
 
+        private async Task RunTestForFunction([CallerMemberName] string propertyName = "", [CallerFilePath] string filePath = "")
+        {
+            var splittedPath = filePath.Split('\\');
+            var typeName = splittedPath[^2];
+
+            var (template, expected) = LoadResources(typeName, propertyName);
+            var result = await NTypeWriter.Render(template, data, settings);
+            var actual = result.Items.First().Content;
+            actual.ShouldBe(expected);
+
+        }
     }
 }
